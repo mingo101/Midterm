@@ -8,6 +8,7 @@ let book = require('../models/books');
 
 /* GET books List page. READ */
 router.get('/', (req, res, next) => {
+  
   // find all books in the books collection
   book.find( (err, books) => {
     if (err) {
@@ -15,99 +16,99 @@ router.get('/', (req, res, next) => {
     }
     else 
     {
-      res.render('books', {title: 'Books List', books: books});
+      res.render('books/index', {
+        title: 'Books',
+        books: books});
     }
   });
 });
 
-//  GET the ADD BOOK Book Details page in order to ADD a new Book
+//  GET the Book Details page in order to ADD a new Book
 router.get('/add', (req, res, next) => {
-  res.render('/details', {title: 'Favourite Books', books:''});
-
-});
-
-// POST process the ADD BOOK Book Details page and create a new Book - CREATE
-router.post('/details', (req, res, next) => {
-  let newBook = book({
-    "title": req.body.title,
-    //"description": req.body.description,
-    "price": req.body.price,
-    "author": req.body.author,
-    "genre": req.body.genre
-  });
-  book.create(newBook, (err, book) => {
-    if(err)
-        {
-            console.log(err);
-            res.end(err);
-        }
-        else
-        {
-            // refresh the book list
-            res.redirect('/books');
-        }
-
-});
-});
-// GET the EDIT Book Details page in order to edit an existing Book
-router.get('details/:id', (req, res, next) => {
-  let id = req.params.id;
-  book.findById(id, (err, bookToEdit) => {
-    if(err)
-    {
-        console.log(err);
-        res.end(err);
-    }
-    else
-    {
-        //show the edit view
-        res.render('books/details', {title: 'Edit Book', book: bookToEdit})
-    }
-
-  });
-});
-
-// POST - process the information passed from the details form and update the document
-router.post('details/:id', (req, res, next) => {
-  let id = req.params.id
-
-  let updatedBook = book ({
-    "_id": id,
-    "title": req.body.title,
-    //"description": req.body.description,
-    "price": req.body.price,
-    "author": req.body.author,
-    "genre": req.body.genre
+  // Redirects user to Details Page
+  res.render('books/details', {
+    title: 'Add a Book',
+    books: '',
+    action: '/books/add'
   });
 
-  book.updateOne({_id:id}, updatedBook, (err) =>{
-    if(err)
-    {
-      console.log(err);
-      res.end(err);
-    }
-    else{
+});
+
+
+// POST process the  Book Details page and create a new Book - CREATE
+router.post('/add', (req, res, next) => {
+  let data = req.body;
+  
+  const newBook = {
+    Title: data.title,
+    Description: data.description,
+    Price: parseInt(data.price),
+    Author: data.author,
+    Genre: data.genre
+  }
+
+  book.create(newBook, function(err, result) {
+    if (err) {
+      res.send(err);
+    } else {
       res.redirect('/books');
     }
   });
+});
+
+// GET the Book Details page in order to edit an existing Book
+router.get('/:id', (req, res, next) => {
+  book.findById( req.params.id , (err, book) => {
+    if (err) {
+      return console.error(err);
+    }
+    else {
+      // Redirects to Details Page
+      res.render('books/details', {
+        title: 'Edit a Book',
+        books: book,
+        action: ''
+      });
+    }
+  });
+    
+});
+
+// POST - process the information passed from the details form and update the document  
+  router.post('/:id', (req, res, next) => {
+    
+    // Gets from form
+    let data = req.body;
+     
+    const upsertData = {
+      Title: data.title,
+      Description: data.description,
+      Price: parseInt(data.price),
+      Author: data.author,
+      Genre: data.genre
+    }
+    book.update( {_id: req.params.id} , upsertData, {upsert: true}, (err, result) => {
+      if (err) {
+        return console.error(err);
+      }
+      else {
+        res.redirect('/books');
+      }
+    });
 });
 
 // GET - process the delete by user id
 router.get('/delete/:id', (req, res, next) => {
-  let id = req.params.id;
-
-  books.remove({_id: id}, (err) => {
-    if(err)
-    {
-      console.log(err);
-      res.end(err);
+  book.remove( {_id: req.params.id} , (err) => {
+    if (err) {
+      return console.error(err);
     }
-    else
-    {
+    else {
       res.redirect('/books');
     }
   });
 });
+
 
 
 module.exports = router;
