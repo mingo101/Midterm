@@ -1,3 +1,4 @@
+//Domingo Novello 301017413
 // modules required for routing
 let express = require('express');
 let router = express.Router();
@@ -25,7 +26,7 @@ router.get('/', (req, res, next) => {
 
 //  GET the Book Details page in order to ADD a new Book
 router.get('/add', (req, res, next) => {
-  // Redirects user to Details Page
+  
   res.render('books/details', {
     title: 'Add a Book',
     books: '',
